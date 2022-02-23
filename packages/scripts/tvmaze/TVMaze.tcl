@@ -11,6 +11,9 @@
 # Description:
 # - Announce information obtained from tvmaze.com on pre and new releases.
 #
+# Requirements:
+# - tcl8.6 tcl-tls tcllib tclcurl
+#
 # Installation:
 # 1. Copy this file (TVMaze.tcl) and the plugin theme (TVMaze.zpt) into your
 #    pzs-ng sitebots 'plugins' folder.
@@ -23,6 +26,7 @@
 # 4. Rehash or restart your eggdrop for the changes to take effect.
 #
 # Changelog:
+# - 20220222 - h-0-s-h: added configurable scriptpath for my specific install requirements, added requirements section
 # - 20210228 - Teqno: Added the passing of TVMaze link for show and episode to tvmaze.sh
 # - 20210227 - Teqno: Removed the enforcement of http:// to https:// for show_url after the update of TVMaze api
 # - 20210226 - Teqno: Added support for the creation of .imdb and tag file with TVMaze info that require external tvmaze.sh script. To enable set tvmaze(imdbfile) true in the settings below.
@@ -53,7 +57,6 @@ namespace eval ::ngBot::plugin::TVMaze {
 	##
 	## Choose one of two settings, the first when using ngBot, the second when using dZSbot
 	variable np [namespace qualifiers [namespace parent]]
-	#variable np ""
 	##
 	## Proxy settings
 	## If you set proxy host it will use proxy. Keep it "" for no proxy.
@@ -87,8 +90,11 @@ namespace eval ::ngBot::plugin::TVMaze {
 	## Genre splitter.
 	set tvmaze(splitter) " / "
 	## 
-	## Creation of .imdb file with TVMaze info that require tvmaze.sh external script in /glftpd/bin
+	## Creation of .imdb file with TVMaze info that require tvmaze-nuker.sh external script in $tvmaze(scriptpath)
 	set tvmaze(imdbfile) false
+	##
+	## Path to our scripts dir -- usual blah blah about setuid/chroot/etc.
+	set tvmaze(scriptpath) "/jail/glftpd/bin/scripts/"
 	##
 	## Pre line regexp.
 	##  We need to reconstruct the full path to the release. Since not all
@@ -389,9 +395,9 @@ namespace eval ::ngBot::plugin::TVMaze {
                                                 append ep_airdate "\"[string map {" " _} [lindex $logData 31]]\""
 						append ep_title "\"[string map {" " _} [lindex $logData 32]]\""
 
-                                                exec /glftpd/bin/tvmaze-nuker.sh $rls_name $show_genres $show_country $show_language $show_network $show_status $show_type $ep_airdate $show_rating
+                                                exec $tvrage(scriptpath)/tvmaze-nuker.sh $rls_name $show_genres $show_country $show_language $show_network $show_status $show_type $ep_airdate $show_rating
 						if {[string equal $tvmaze(imdbfile) "true"]} {
-							exec /glftpd/bin/tvmaze.sh $rls_name $show_name $show_genres $show_country $show_language $show_network $show_status $show_type $ep_airdate $show_rating $show_imdb $show_summary $show_premiered $show_url $ep_url
+							exec $tvrage(scriptpath)/tvmaze-nuker.sh $rls_name $show_name $show_genres $show_country $show_language $show_network $show_status $show_type $ep_airdate $show_rating $show_imdb $show_summary $show_premiered $show_url $ep_url
 						}
 
                                         }
